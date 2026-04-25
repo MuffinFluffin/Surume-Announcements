@@ -1,10 +1,8 @@
 {
-  "announcements": [
-    {
-      "id": "Test",
-      "type": "card",
-      "title": "Title",
-      "body": "Body",
-    }
-  ]
+  "id": "welcome-2026-04",
+  "type": "card",
+  "title": "Welcome to Surume",
+  "body": "Thanks for trying the PS2 emulator on your device. Plug in a controller, pick a game from your library, and dig into Settings anytime for graphics, audio, and controls. Have fun.",
+  "icon": "hand.wave.fill",
+  "tintKey": "green"
 }

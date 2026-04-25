@@ -5,12 +5,8 @@
       "type": "card",
       "title": "Title",
       "body": "Body",
-      "icon": "megaphone.fill)",
-      "tintKey": "Black",
-      "url": "",
-      "minVersion": "",
-      "maxVersion": "",
-      "expiresAt": ""
+      "icon": "megaphone.fill",
+      "tintKey": "Black"
     }
   ]
 }

@@ -2,10 +2,10 @@
 {
   "announcements": [
     {
-  "id": "welcome-2026-04",
-  "type": "card",
+  "id": "welcome-2026-34",
+  "type": "fullscreen",
   "title": "Welcome to Surume",
-  "body": "Thanks for trying the PS2 emulator on your device. Plug in a controller, pick a game from your library, and dig into Settings anytime for graphics, audio, and controls. Have fun.",
+  "body": "THIS APP NEEDS BIOS FROM OFFICIAL PS2, IT LEGALLY CANNOT BE GIVEN TO APPLE FOR REVIEW! a copyrite free mit licensed rom is induled in this app which i, Dylan Mathurin allow apple to use for review purposes. i created this rom myself from source.",
   "icon": "hand.wave.fill",
   "tintKey": "green"
     }

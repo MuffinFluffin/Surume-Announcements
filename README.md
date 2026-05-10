@@ -1,16 +1,12 @@
 # Surume-Announcements
 
-Remote announcement manifest for the Surume iOS app. The app pulls this on cold launch, on foreground return, and once after onboarding:
+Remote announcement manifest for the Surume iOS app. Pulled on cold launch and on foreground return:
 
 ```
 https://raw.githubusercontent.com/MuffinFluffin/Surume-Announcements/main/announcements.json
 ```
 
-Repo: https://github.com/MuffinFluffin/Surume-Announcements
-
-Each entry shows up either as a notification card (toast) or a fullscreen takeover. Once an entry is dismissed locally, its `id` is remembered and it won't fire again unless you opt into cold-launch repeats or change the `id`.
-
-The schema, parser, and pacing rules are identical across the Surume, Sakura, Surume, and Fin announcement feeds so a card written for one project drops into another with only an id change.
+Each entry shows up either as a notification card or a fullscreen sheet. Once dismissed, the `id` is remembered and won't fire again unless you change it or opt into cold-launch repeats.
 
 ## Schema
 
@@ -22,7 +18,7 @@ The schema, parser, and pacing rules are identical across the Surume, Sakura, Su
       "id": "stable-unique-key",
       "type": "fullscreen",
       "title": "Headline",
-      "body": "Markdown body. Inline links like [GitHub](https://github.com/MuffinFluffin/Surume-Announcements) are picked up automatically.",
+      "body": "Body. Inline links like [GitHub](https://github.com/MuffinFluffin/Surume-Announcements) work.",
       "icon": "megaphone.fill",
       "tintKey": "pink",
       "links": [
@@ -50,78 +46,53 @@ The schema, parser, and pacing rules are identical across the Surume, Sakura, Su
 
 | Field | Required | Notes |
 |-------|----------|-------|
-| `id` | yes | Stable unique key. Change it if you want everyone to see the entry again. |
-| `type` | yes | `card` (toast stack) or `fullscreen`. |
+| `id` | yes | Stable unique key. Change it to re-show. |
+| `type` | yes | `card` or `fullscreen`. |
 | `title` | yes | Headline. |
-| `body` | no | Subtitle / body. Markdown links `[text](url)` render inline and become focusable action buttons. |
-| `icon` | no | SF Symbol name. Cards default to `megaphone.fill`. |
-| `tintKey` | no | Theme palette key: `pink`, `green`, `red`, `blue`, `purple`, `orange`, `bronze`, `plum`, etc. |
-| `links` | no | Array of action buttons rendered under the body. Each entry: `label`, `url`, optional `icon` (SF Symbol), optional `tintKey`. Multiple links are supported. |
-| `url` | no | Single legacy link. Auto-merged into `links` as a "Learn More" button when not already present. |
-| `minVersion` | no | Hidden if app marketing version `<` this (numeric compare). |
-| `maxVersion` | no | Hidden if app marketing version `>=` this. Useful for nagging old builds. |
-| `minBuild` | no | Hidden if normalized `CFBundleVersion` `<` this. Leading-digits parser handles values like `4700.1`. |
-| `maxBuild` | no | Hidden if normalized build `>` this. |
-| `expiresAt` | no | ISO-8601 UTC. Hidden after this instant. |
-| `showAgainEveryColdLaunch` | no | Default `false`. When `true`, timed dismissals do not persist to disk and the entry resurfaces on later launches until the user explicitly dismisses it or `maxColdLaunchDisplays` is reached. |
-| `maxColdLaunchDisplays` | no | Cap for cold-launch resurfaces. Omit for unlimited. |
+| `body` | no | Body text. Markdown `[label](url)` links work. |
+| `icon` | no | SF Symbol. Defaults to `megaphone.fill`. |
+| `tintKey` | no | Theme palette key (`pink`, `green`, `red`, `blue`, `purple`, etc.). |
+| `links` | no | Array of `{label, url, icon?, tintKey?}` action buttons. |
+| `url` | no | Single legacy link, merged into `links` as "Learn More". |
+| `minVersion` | no | Hidden if app version `<` this. |
+| `maxVersion` | no | Hidden if app version `>=` this. |
+| `minBuild` | no | Hidden if `CFBundleVersion` `<` this. |
+| `maxBuild` | no | Hidden if `CFBundleVersion` `>` this. |
+| `expiresAt` | no | ISO-8601 UTC. Hidden after this. |
+| `showAgainEveryColdLaunch` | no | When `true`, timed dismissals don't persist until the user explicitly dismisses or the cap is hit. |
+| `maxColdLaunchDisplays` | no | Cap for cold-launch repeats. |
 
 ### Card timing (`type: "card"` only)
 
 | Field | Default | Notes |
 |-------|---------|-------|
-| `introSeconds` | `3` | Count-in shown before the persistence timer starts. `0` skips it. |
-| `persistenceSeconds` | `8` | Seconds the toast stays on screen after the intro. Forced to `8` when `recurrenceTotalShows > 1` and the value is `<= 0`. |
-| `recurrenceTotalShows` | `1` | Total toast appearances including the first. Set `> 1` for spaced repeats. |
-| `recurrenceIntervalSeconds` | `0` | Gap between repeats. `0` replays immediately when the prior toast expires. |
+| `introSeconds` | `3` | Count-in before persistence. `0` skips. |
+| `persistenceSeconds` | `8` | Time on screen after intro. |
+| `recurrenceTotalShows` | `1` | Total appearances. `> 1` enables spaced repeats. |
+| `recurrenceIntervalSeconds` | `0` | Gap between repeats. |
 
-Card entries only run when notifications are enabled in the app's OSD or settings panel. Fullscreen entries decode the timing fields but ignore them.
+Card entries only run when notifications are enabled in the app. Fullscreen ignores timer fields.
 
-### Inline body links and the action list
+### Fetch pacing (`poll`)
 
-The body supports markdown links: `Read about it [on GitHub](https://github.com/MuffinFluffin/Surume-Announcements)`. They render as inline highlighted text on touch and are also collected into the focusable action list under the body so a controller or keyboard can move to each one.
+| Field | Default |
+|-------|---------|
+| `maxSuccessfulFetchesPerRollingMinute` | `2` |
+| `maxSuccessfulFetchesPerRollingHour` | `12` |
+| `maxSuccessfulFetchesPerRollingDay` | `48` |
+| `minSpacingSecondsBetweenAttempts` | `90` |
+| `emergencyRelaxedUntilUTC` | none |
 
-The final action list is built like this, deduped by URL, in order:
-
-1. Every entry in `links`.
-2. Every `[label](url)` parsed from the body.
-3. The legacy `url` as "Learn More" (only if not already covered).
-
-A "Dismiss" row is always appended at the end.
-
-### Controller and keyboard navigation
-
-Fullscreen entries are fully navigable without touch:
-
-- D-pad up / down or arrow keys move focus through the action rows.
-- A / Cross / Enter opens the focused link, then dismisses.
-- B / Circle / Escape dismisses without opening anything.
-- Background tap also dismisses.
-
-The hint footer at the bottom shows the right glyphs (Xbox-style or PlayStation-style) based on which controller is connected.
-
-### Fetch pacing (root `poll` object)
-
-| Field | Default | Notes |
-|-------|---------|-------|
-| `maxSuccessfulFetchesPerRollingMinute` | `2` | Counts decoded HTTP 200s only. Rolling 60 s window. |
-| `maxSuccessfulFetchesPerRollingHour` | `12` | Rolling 1 hour. |
-| `maxSuccessfulFetchesPerRollingDay` | `48` | Rolling 24 hours. |
-| `minSpacingSecondsBetweenAttempts` | `90` | Minimum gap between outbound fetch attempts. Floored at 15 s. |
-| `emergencyRelaxedUntilUTC` | none | ISO-8601 UTC. While the device clock is before this instant, rolling success caps double. Min spacing still applies. |
-
-The latest manifest that contained `poll` overwrites the persisted hints on device. Omitting `poll` keeps whatever hints were already saved.
+Latest manifest with `poll` overwrites stored hints. Omitting `poll` keeps prior hints.
 
 ## Examples
-
-### Multi-link fullscreen
 
 ```json
 {
   "id": "release-notes-2026-05",
   "type": "fullscreen",
   "title": "What's new in Surume",
-  "body": "Refreshed touch controls, controller navigation, neural upscale on iOS. Read the full notes on [GitHub](https://github.com/MuffinFluffin/Surume-Announcements).",
+  "body": "Read the full notes on [GitHub](https://github.com/MuffinFluffin/Surume-Announcements).",
   "icon": "sparkles",
   "tintKey": "pink",
   "links": [
@@ -132,14 +103,12 @@ The latest manifest that contained `poll` overwrites the persisted hints on devi
 }
 ```
 
-### Spaced toast nag for outdated builds
-
 ```json
 {
   "id": "upgrade-2026-05",
   "type": "card",
   "title": "Update available",
-  "body": "Open the App Store to grab the latest build.",
+  "body": "Open the App Store for the latest build.",
   "icon": "arrow.down.circle.fill",
   "tintKey": "red",
   "maxVersion": "2.99.99",
@@ -153,8 +122,4 @@ The latest manifest that contained `poll` overwrites the persisted hints on devi
 
 ## Publishing
 
-1. Edit `announcements.json` in this repo.
-2. Merge to `main`. GitHub serves the raw CDN within a minute.
-3. Clients pull on next cold launch, foreground return, or post-onboarding completion.
-
-Manifest-only changes do not need an App Store rebuild. Only changes to the fetch URL or the parser require a new app binary.
+Edit `announcements.json` on `main`, merge. The raw CDN updates within a minute. No App Store rebuild needed for manifest-only edits.

@@ -1,13 +1,27 @@
-
 {
   "announcements": [
     {
-  "id": "welcome-2026-34",
-  "type": "fullscreen",
-  "title": "Welcome to Surume",
-  "body": "THIS APP NEEDS BIOS FROM OFFICIAL PS2, IT LEGALLY CANNOT BE GIVEN TO APPLE FOR REVIEW! a copyrite free mit licensed rom is induled in this app which i, Dylan Mathurin allow apple to use for review purposes. i created this rom myself from source.",
-  "icon": "hand.wave.fill",
-  "tintKey": "green"
+      "id": "surume-live-launch-2026",
+      "type": "fullscreen",
+      "title": "Surume is officially live! 🌊",
+      "body": "Welcome to the App Store launch of Surume! Thank you for being part of this journey. Join our community to stay updated on new features and get support.",
+      "icon": "rocket.fill",
+      "tintKey": "blue",
+      "links": [
+        {
+          "label": "Join our Discord",
+          "url": "https://discord.gg/PG4tYpQ5yg",
+          "icon": "bubble.left.and.bubble.right.fill",
+          "tintKey": "indigo"
+        },
+        {
+          "label": "GitHub Source",
+          "url": "https://github.com/MuffinFluffin/Surume-JL",
+          "icon": "terminal.fill",
+          "tintKey": "black"
+        }
+      ],
+      "showAgainEveryColdLaunch": false
     }
   ]
 }
